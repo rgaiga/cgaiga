@@ -1,0 +1,25 @@
+#ifndef cgaiga_vm_h
+#define cgaiga_vm_h
+
+#include "chunk.h"
+#include "value.h"
+
+#define MAX_STACK_SIZE 256
+
+typedef struct {
+    Chunk *chunk;
+    uint8_t *ip;  // Instruction pointer
+    Value stack[MAX_STACK_SIZE];
+    Value *stack_pointer;  // Points to the top element + 1
+} VirtualMachine;
+
+typedef enum { INTERPRET_OK, INTERPRET_COMPILE_ERROR, INTERPRET_RUNTIME_ERROR } InterpretResult;
+
+void init_virtual_machine();
+void free_virtual_machine();
+
+InterpretResult interpret(Chunk *chunk);
+void push(Value value);
+Value pop();
+
+#endif
