@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "*.opf": "xml",
+        "unordered_map": "c",
+        "__hash_table": "c",
+        "array": "c",
+        "complex": "c",
+        "type_traits": "c",
+        "limits": "c",
+        "ratio": "c",
+        "variant": "c",
+        "stdlib.h": "c",
+        "chunk.h": "c",
+        "__split_buffer": "c",
+        "bitset": "c",
+        "deque": "c",
+        "initializer_list": "c",
+        "queue": "c",
+        "stack": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "__bit_reference": "c"
+    }
+}
