@@ -1,13 +1,19 @@
 #include "scanner.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "common.h"
+typedef enum {
+    ESCAPE_SEQUENCE_CARRIAGE_RETURN = '\r',
+    ESCAPE_SEQUENCE_NEWLINE = '\n',
+    ESCAPE_SEQUENCE_NULL = '\0',
+    ESCAPE_SEQUENCE_TAB = '\t',
+} EscapeSequence;
 
 typedef struct {
-    const char *start;
-    const char *current;
+    const char *start;    // Pointer to Lexeme's start character.
+    const char *current;  // Pointer to Lexeme's current character.
     int current_line;
 } Scanner;
 
@@ -19,68 +25,68 @@ void init_scanner(const char *source_code) {
     scanner.current_line = 1;
 }
 
-static bool is_digit(char c) { return c >= '0' && c <= '9'; }
-static bool is_alpha(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+static bool is_digit(char character) { return character >= '0' && character <= '9'; }
+static bool is_alpha(char character) {
+    return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+           character == '_';
 }
 
-static bool is_at_end() {
-    return *scanner.current == '\0';  // Line terminator
-}
+static bool is_at_end() { return *scanner.current == ESCAPE_SEQUENCE_NULL; }
 
 static Token make_token(TokenType type) {
     Token token;
     token.type = type;
-    token.start = scanner.start;
-    token.length = (int)(scanner.current - scanner.start);
     token.line = scanner.current_line;
+    token.start = scanner.start;
+    token.length = (int)(scanner.current - scanner.start);  // Pointer offset casted to integer.
+
     return token;
 }
 
 static Token make_error_token(const char *message) {
     Token token;
     token.type = TOKEN_ERROR;
-
+    token.line = scanner.current_line;
     token.start = message;
     token.length = (int)strlen(message);
 
-    token.line = scanner.current_line;
     return token;
 }
-static char advance() {
-    const char current_character = *scanner.current;
-    scanner.current++;
-    return current_character;
-}
+
+static char advance() { return *scanner.current++; }
 
 static char peek() { return *scanner.current; }
+
 static char peek_next() {
-    if (is_at_end()) return '\0';
-    return scanner.current[1];
+    if (is_at_end()) return ESCAPE_SEQUENCE_NULL;
+    return *(scanner.current + 1);
 }
 
 static void skip_whitespace() {
     for (;;) {
         char character = peek();
+
         switch (character) {
-            case ' ':   // Whitespace
-            case '\r':  // Carriage return
-            case '\t':  // Tab
+            case ' ':
+            case ESCAPE_SEQUENCE_CARRIAGE_RETURN:
+            case ESCAPE_SEQUENCE_TAB:
                 advance();
                 break;
-                // New lines.
-            case '\n':
+            case ESCAPE_SEQUENCE_NEWLINE:
                 scanner.current_line++;
                 advance();
                 break;
-            case '/':
+            case '/': {
+                // Single-line comment.
                 if (peek_next() == '/') {
-                    // A comment goes until the end of the line.
-                    while (peek() != '\n' && !is_at_end()) advance();
-                } else {
-                    return;
+                    // A single-line comment goes until the end of the line.
+                    while (!is_at_end()) {
+                        if (peek() == ESCAPE_SEQUENCE_NEWLINE) break;
+                        advance();
+                    }
                 }
                 break;
+            }
             default:
                 return;
         }
@@ -147,33 +153,51 @@ static TokenType identifier_type() {
     return TOKEN_IDENTIFIER;
 }
 
+// Literal: identifier
 static Token identifier() {
-    while (is_alpha(peek()) || is_digit(peek())) advance();
+    for (;;) {
+        char character = peek();
+        if (!is_alpha(character) && !is_digit(character)) break;
+        advance();
+    }
+
     return make_token(identifier_type());
 }
 
+// Literal: number
 static Token number() {
-    while (is_digit(peek())) advance();
+    for (;;) {
+        char character = peek();
+        if (!is_digit(character)) break;
+        advance();
+    }
 
     // Look for a fractional part.
     if (peek() == '.' && is_digit(peek_next())) {
-        advance();  // consume ' . ' (the dot)
+        advance();  // consume '.'
 
-        while (is_digit(peek())) advance();
+        for (;;) {
+            char character = peek();
+            if (!is_digit(character)) break;
+            advance();
+        }
     }
 
     return make_token(TOKEN_NUMBER);
 }
 
+// Literal: string
 static Token string() {
-    while (peek() != '"' && !is_at_end()) {
-        if (peek() == '\n') scanner.current_line++;
+    while (!is_at_end()) {
+        if (peek() == '"') break;  // Reached the ending quote.
+        if (peek() == ESCAPE_SEQUENCE_NEWLINE) scanner.current_line++;
         advance();
     }
 
     if (is_at_end()) return make_error_token("Unterminated string.");
 
-    advance();  // consume ' " ' (the closing quote)
+    advance();  // consume '"'
+
     return make_token(TOKEN_STRING);
 }
 
@@ -192,7 +216,6 @@ Token scan_token() {
     if (is_at_end()) return make_token(TOKEN_EOF);
 
     char character = advance();
-
     if (is_alpha(character)) return identifier();
     if (is_digit(character)) return number();
 
@@ -221,7 +244,7 @@ Token scan_token() {
         case '/':
             return make_token(TOKEN_SLASH);
 
-        // Two character tokens.
+        // One or two character tokens.
         case '!':
             return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
         case '=':
@@ -231,6 +254,7 @@ Token scan_token() {
         case '>':
             return make_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
 
+        // String literal.
         case '"':
             return string();
     }
