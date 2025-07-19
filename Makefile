@@ -1,7 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -g -Wall -Wextra -std=c99
 
-SRC = src/main.c src/chunk.c src/memory.c src/debug.c src/value.c src/virtual_machine.c
+SRC = src/main.c src/chunk.c src/memory.c src/debug.c src/value.c \
+      src/virtual_machine.c src/compiler.c src/scanner.c
 OBJ = $(SRC:src/%.c=build/%.o)
 BIN = cgaiga
 
