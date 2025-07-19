@@ -8,7 +8,7 @@
 
 typedef struct {
     Chunk *chunk;
-    uint8_t *ip;  // Instruction pointer
+    uint8_t *instruction_pointer;
     Value stack[MAX_STACK_SIZE];
     Value *stack_pointer;  // Points to the top element + 1
 } VirtualMachine;

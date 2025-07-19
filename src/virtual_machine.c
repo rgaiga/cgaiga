@@ -26,7 +26,7 @@ Value pop() {
 }
 
 static InterpretResult run() {
-#define READ_BYTE() (*vm.ip++)
+#define READ_BYTE() (*vm.instruction_pointer++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 #define BINARY_OP(op)     \
     do {                  \
@@ -44,7 +44,7 @@ static InterpretResult run() {
             printf(" ]");
         }
         printf("\n");
-        disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+        disassemble_instruction(vm.chunk, (int)(vm.instruction_pointer - vm.chunk->code));
 #endif
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {
@@ -83,6 +83,19 @@ static InterpretResult run() {
 }
 
 InterpretResult interpret(const char* source_code) {
-    compile(source_code);
-    return INTERPRET_OK;
+    Chunk chunk;
+    init_chunk(&chunk);
+
+    if (!compile(source_code, &chunk)) {
+        free_chunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.instruction_pointer = vm.chunk->code;
+
+    InterpretResult result = run();
+
+    free_chunk(&chunk);
+    return result;
 }

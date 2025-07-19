@@ -36,17 +36,22 @@ void write_chunk(Chunk *chunk, uint8_t byte, int line) {
     chunk->size++;
 }
 
-void write_constant(Chunk *chunk, Value value, int line) {
-    // Use OP_CONSTANT if chunk has less than 255 constants.
-    if (chunk->constants.size < 255) {
-        write_chunk(chunk, OP_CONSTANT, line);
-
-        write_value_array(&chunk->constants, value);
-        int constant_index = chunk->constants.size - 1;
-        write_chunk(chunk, constant_index, line);
-
-        return;
-    }
-
-    // TODO: OP_CONSTANT_LONG
+int add_constant(Chunk *chunk, Value value) {
+    write_value_array(&chunk->constants, value);
+    return chunk->constants.size - 1;
 }
+
+// void write_constant(Chunk *chunk, Value value, int line) {
+//     // Use OP_CONSTANT if chunk has less than 255 constants.
+//     if (chunk->constants.size < 255) {
+//         write_chunk(chunk, OP_CONSTANT, line);
+
+//         write_value_array(&chunk->constants, value);
+//         int constant_index = chunk->constants.size - 1;
+//         write_chunk(chunk, constant_index, line);
+
+//         return;
+//     }
+
+//     // TODO: OP_CONSTANT_LONG
+// }

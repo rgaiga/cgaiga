@@ -28,6 +28,7 @@ void init_chunk(Chunk *chunk);
 void free_chunk(Chunk *chunk);
 void write_chunk(Chunk *chunk, uint8_t byte, int line);
 
-void write_constant(Chunk *chunk, Value value, int line);
+int add_constant(Chunk *chunk, Value value);
+// void write_constant(Chunk *chunk, Value value, int line);
 
 #endif
