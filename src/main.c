@@ -72,7 +72,6 @@ int main(int argc, const char* argv[]) {
     }
 
     free_virtual_machine();
-    // free_chunk(&chunk);
 
     return 0;
 }

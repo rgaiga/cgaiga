@@ -27,4 +27,31 @@ void write_value_array(ValueArray *array, Value value) {
     array->size++;
 }
 
-void print_value(Value value) { printf("%g", value); }
+void print_value(Value value) {
+    switch (value.type) {
+        case VALUE_BOOLEAN:
+            printf(AS_BOOLEAN(value) ? "true" : "false");
+            break;
+        case VALUE_NIL:
+            printf("nil");
+            break;
+        case VALUE_NUMBER:
+            printf("%g", AS_NUMBER(value));
+            break;
+    }
+}
+
+bool values_equal(Value a, Value b) {
+    if (a.type != b.type) return false;
+
+    switch (a.type) {
+        case VALUE_BOOLEAN:
+            return AS_BOOLEAN(a) == AS_BOOLEAN(b);
+        case VALUE_NIL:
+            return true;
+        case VALUE_NUMBER:
+            return AS_NUMBER(a) == AS_NUMBER(b);
+        default:
+            return false;  // Unreachable.
+    }
+}
