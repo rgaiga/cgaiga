@@ -1,5 +1,5 @@
-#ifndef cgaiga_scanner_h
-#define cgaiga_scanner_h
+#ifndef SCANNER_H
+#define SCANNER_H
 
 typedef enum {
     // Single-character tokens.

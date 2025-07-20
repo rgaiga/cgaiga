@@ -1,5 +1,5 @@
-#ifndef cgaiga_memory_h
-#define cgaiga_memory_h
+#ifndef MEMORY_H
+#define MEMORY_H
 
 #include "common.h"
 

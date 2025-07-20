@@ -1,5 +1,5 @@
-#ifndef cgaiga_common_h
-#define cgaiga_common_h
+#ifndef COMMON_H
+#define COMMON_H
 
 #include <stdbool.h>
 #include <stddef.h>

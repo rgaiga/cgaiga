@@ -1,5 +1,5 @@
-#ifndef cgaiga_debug_h
-#define cgaiga_debug_h
+#ifndef DEBUG_H
+#define DEBUG_H
 
 #include "chunk.h"
 

@@ -1,5 +1,5 @@
-#ifndef cgaiga_value_h
-#define cgaiga_value_h
+#ifndef VALUE_H
+#define VALUE_H
 
 #include "common.h"
 

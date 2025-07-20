@@ -1,5 +1,5 @@
-#ifndef cgaiga_compiler_h
-#define cgaiga_compiler_h
+#ifndef COMPILER_H
+#define COMPILER_H
 
 #include "virtual_machine.h"
 

@@ -1,5 +1,5 @@
-#ifndef cgaiga_vm_h
-#define cgaiga_vm_h
+#ifndef VIRTUAL_MACHINE_H
+#define VIRTUAL_MACHINE_H
 
 #include "chunk.h"
 #include "value.h"
