@@ -67,10 +67,9 @@ bool values_equal(Value a, Value b) {
         case VALUE_NUMBER:
             return AS_NUMBER(a) == AS_NUMBER(b);
         case VALUE_OBJECT: {
-            ObjectString *string_a = AS_STRING(a);
-            ObjectString *string_b = AS_STRING(b);
-            return string_a->length == string_b->length &&
-                   memcmp(string_a->characters, string_b->characters, string_a->length) == 0;
+            // We do not need to manually check if the strings are equal
+            // since we intern all strings.
+            return AS_OBJECT(a) == AS_OBJECT(b);
         }
         default:
             return false;  // Unreachable.

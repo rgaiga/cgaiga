@@ -2,6 +2,7 @@
 #define VIRTUAL_MACHINE_H
 
 #include "chunk.h"
+#include "hash_table.h"
 #include "value.h"
 
 #define MAX_STACK_SIZE 256
@@ -11,6 +12,7 @@ typedef struct {
     uint8_t *instruction_pointer;
     Value stack[MAX_STACK_SIZE];
     Value *stack_pointer;  // Points to the top element + 1
+    HashTable strings;
     Object *objects;
 } VirtualMachine;
 

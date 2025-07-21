@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "debug.h"
 // #include "memory.h"
+#include "hash_table.h"
 #include "object.h"
 #include "value.h"
 
@@ -29,11 +30,15 @@ static void reset_stack();
 // Initializes the Virtual Machine.
 void init_virtual_machine() {
     reset_stack();
+    init_hash_table(&vm.strings);
     vm.objects = NULL;
 }
 
 // Frees resources used by the Virtual Machine.
-void free_virtual_machine() { free_objects(); }
+void free_virtual_machine() {
+    free_hash_table(&vm.strings);
+    free_objects();
+}
 
 // Interprets a given source code string.
 InterpretResult interpret(const char* source_code) {

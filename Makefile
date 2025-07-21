@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -Wall -Wextra -std=c99
 
 SRC = src/main.c src/chunk.c src/memory.c src/debug.c src/value.c \
-      src/virtual_machine.c src/compiler.c src/scanner.c src/object.c
+      src/virtual_machine.c src/compiler.c src/scanner.c src/object.c src/hash_table.c
 OBJ = $(SRC:src/%.c=build/%.o)
 
 BIN_DIR = bin
