@@ -2,9 +2,7 @@
 
 #include <stdlib.h>
 
-#include "memory.h"
-#include "value.h"
-
+// Initializes the chunk.
 void init_chunk(Chunk *chunk) {
     chunk->size = 0;
     chunk->capacity = 0;
@@ -15,6 +13,7 @@ void init_chunk(Chunk *chunk) {
     init_value_array(&chunk->constants);
 }
 
+// Frees resources used by the chunk.
 void free_chunk(Chunk *chunk) {
     FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
     FREE_ARRAY(int, chunk->lines, chunk->capacity);
@@ -22,6 +21,7 @@ void free_chunk(Chunk *chunk) {
     init_chunk(chunk);
 }
 
+// Writes a byte to the specified chunk at the specified line.
 void write_chunk(Chunk *chunk, uint8_t byte, int line) {
     if (chunk->capacity < chunk->size + 1) {
         int old_capacity = chunk->capacity;
@@ -36,6 +36,7 @@ void write_chunk(Chunk *chunk, uint8_t byte, int line) {
     chunk->size++;
 }
 
+// Adds a constant value to the specified chunk.
 int add_constant(Chunk *chunk, Value value) {
     write_value_array(&chunk->constants, value);
     return chunk->constants.size - 1;

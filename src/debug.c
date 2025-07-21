@@ -2,9 +2,6 @@
 
 #include <stdio.h>
 
-#include "chunk.h"
-#include "value.h"
-
 void disassemble_chunk(Chunk *chunk, const char *name) {
     printf("== %s ==\n", name);
 

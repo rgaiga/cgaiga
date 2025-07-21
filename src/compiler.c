@@ -1,13 +1,9 @@
 #include "compiler.h"
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "chunk.h"
-#include "common.h"
 #include "scanner.h"
-#include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
@@ -21,17 +17,17 @@ typedef struct {
 } Parser;
 
 typedef enum {
-    PREC_NONE,
-    PREC_ASSIGNMENT,  // =
-    PREC_OR,          // or
-    PREC_AND,         // and
-    PREC_EQUALITY,    // == !=
-    PREC_COMPARISON,  // < > <= >=
-    PREC_TERM,        // + -
-    PREC_FACTOR,      // * /
-    PREC_UNARY,       // ! -
-    PREC_CALL,        // . ()
-    PREC_PRIMARY
+    PRECEDENCE_NONE,
+    PRECEDENCE_ASSIGNMENT,  // =
+    PRECEDENCE_OR,          // or
+    PRECEDENCE_AND,         // and
+    PRECEDENCE_EQUALITY,    // == !=
+    PRECEDENCE_COMPARISON,  // < > <= >=
+    PRECEDENCE_TERM,        // + -
+    PRECEDENCE_FACTOR,      // * /
+    PRECEDENCE_UNARY,       // ! -
+    PRECEDENCE_CALL,        // . ()
+    PRECEDENCE_PRIMARY
 } Precedence;
 
 typedef void (*ParseFunction)();
@@ -195,7 +191,7 @@ static void literal() {
     }
 }
 
-static void expression() { parse_precedence(PREC_ASSIGNMENT); }
+static void expression() { parse_precedence(PRECEDENCE_ASSIGNMENT); }
 
 static void grouping() {
     expression();
@@ -211,7 +207,7 @@ static void unary() {
     TokenType operatorType = parser.previous.type;
 
     // Compile the operand.
-    parse_precedence(PREC_UNARY);
+    parse_precedence(PRECEDENCE_UNARY);
 
     // Emit the operator instruction.
     switch (operatorType) {
@@ -227,50 +223,50 @@ static void unary() {
 }
 
 ParseRule rules[] = {
-    [TOKEN_LEFT_PARENTHESIS] = {grouping, NULL, PREC_NONE},
-    [TOKEN_RIGHT_PARENTHESIS] = {NULL, NULL, PREC_NONE},
-    [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
-    [TOKEN_RIGHT_BRACE] = {NULL, NULL, PREC_NONE},
-    [TOKEN_COMMA] = {NULL, NULL, PREC_NONE},
-    [TOKEN_DOT] = {NULL, NULL, PREC_NONE},
-    [TOKEN_MINUS] = {unary, binary, PREC_TERM},
-    [TOKEN_PLUS] = {NULL, binary, PREC_TERM},
-    [TOKEN_SEMICOLON] = {NULL, NULL, PREC_NONE},
-    [TOKEN_SLASH] = {NULL, binary, PREC_FACTOR},
-    [TOKEN_STAR] = {NULL, binary, PREC_FACTOR},
+    [TOKEN_LEFT_PARENTHESIS] = {grouping, NULL, PRECEDENCE_NONE},
+    [TOKEN_RIGHT_PARENTHESIS] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_LEFT_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_RIGHT_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_COMMA] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_DOT] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_MINUS] = {unary, binary, PRECEDENCE_TERM},
+    [TOKEN_PLUS] = {NULL, binary, PRECEDENCE_TERM},
+    [TOKEN_SEMICOLON] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_SLASH] = {NULL, binary, PRECEDENCE_FACTOR},
+    [TOKEN_STAR] = {NULL, binary, PRECEDENCE_FACTOR},
 
-    [TOKEN_BANG] = {unary, NULL, PREC_NONE},
-    [TOKEN_BANG_EQUAL] = {NULL, binary, PREC_EQUALITY},
-    [TOKEN_EQUAL] = {NULL, NULL, PREC_NONE},
-    [TOKEN_EQUAL_EQUAL] = {NULL, binary, PREC_EQUALITY},
-    [TOKEN_GREATER] = {NULL, binary, PREC_COMPARISON},
-    [TOKEN_GREATER_EQUAL] = {NULL, binary, PREC_COMPARISON},
-    [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
-    [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
+    [TOKEN_BANG] = {unary, NULL, PRECEDENCE_NONE},
+    [TOKEN_BANG_EQUAL] = {NULL, binary, PRECEDENCE_EQUALITY},
+    [TOKEN_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_EQUAL_EQUAL] = {NULL, binary, PRECEDENCE_EQUALITY},
+    [TOKEN_GREATER] = {NULL, binary, PRECEDENCE_COMPARISON},
+    [TOKEN_GREATER_EQUAL] = {NULL, binary, PRECEDENCE_COMPARISON},
+    [TOKEN_LESS] = {NULL, binary, PRECEDENCE_COMPARISON},
+    [TOKEN_LESS_EQUAL] = {NULL, binary, PRECEDENCE_COMPARISON},
 
-    [TOKEN_IDENTIFIER] = {NULL, NULL, PREC_NONE},
-    [TOKEN_STRING] = {NULL, NULL, PREC_NONE},
-    [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
+    [TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_NUMBER] = {number, NULL, PRECEDENCE_NONE},
 
-    [TOKEN_AND] = {NULL, NULL, PREC_NONE},
-    [TOKEN_CLASS] = {NULL, NULL, PREC_NONE},
-    [TOKEN_ELSE] = {NULL, NULL, PREC_NONE},
-    [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
-    [TOKEN_FOR] = {NULL, NULL, PREC_NONE},
-    [TOKEN_FUN] = {NULL, NULL, PREC_NONE},
-    [TOKEN_IF] = {NULL, NULL, PREC_NONE},
-    [TOKEN_NIL] = {literal, NULL, PREC_NONE},
-    [TOKEN_OR] = {NULL, NULL, PREC_NONE},
-    [TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
-    [TOKEN_RETURN] = {NULL, NULL, PREC_NONE},
-    [TOKEN_SUPER] = {NULL, NULL, PREC_NONE},
-    [TOKEN_THIS] = {NULL, NULL, PREC_NONE},
-    [TOKEN_TRUE] = {literal, NULL, PREC_NONE},
-    [TOKEN_VAR] = {NULL, NULL, PREC_NONE},
-    [TOKEN_WHILE] = {NULL, NULL, PREC_NONE},
+    [TOKEN_AND] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_CLASS] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_ELSE] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_FALSE] = {literal, NULL, PRECEDENCE_NONE},
+    [TOKEN_FOR] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_FUN] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_IF] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_NIL] = {literal, NULL, PRECEDENCE_NONE},
+    [TOKEN_OR] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_PRINT] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_RETURN] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_SUPER] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_THIS] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_TRUE] = {literal, NULL, PRECEDENCE_NONE},
+    [TOKEN_VAR] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_WHILE] = {NULL, NULL, PRECEDENCE_NONE},
 
-    [TOKEN_ERROR] = {NULL, NULL, PREC_NONE},
-    [TOKEN_EOF] = {NULL, NULL, PREC_NONE},
+    [TOKEN_ERROR] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_EOF] = {NULL, NULL, PRECEDENCE_NONE},
 };
 
 static ParseRule *get_rule(TokenType type) { return &rules[type]; }
