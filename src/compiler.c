@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "object.h"
 #include "scanner.h"
+#include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
@@ -222,6 +224,15 @@ static void unary() {
     }
 }
 
+static void string() {
+    // Trim quotes from string:
+    // Start at offset +1 to consume first quote
+    // Length - 2 to consume characters and leave last quote.
+    ObjectString *object_string =
+        copy_string(parser.previous.start + 1, parser.previous.length - 2);
+    emit_constant(OBJECT_VALUE(object_string));
+}
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PARENTHESIS] = {grouping, NULL, PRECEDENCE_NONE},
     [TOKEN_RIGHT_PARENTHESIS] = {NULL, NULL, PRECEDENCE_NONE},
@@ -245,7 +256,7 @@ ParseRule rules[] = {
     [TOKEN_LESS_EQUAL] = {NULL, binary, PRECEDENCE_COMPARISON},
 
     [TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
-    [TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
+    [TOKEN_STRING] = {string, NULL, PRECEDENCE_NONE},
     [TOKEN_NUMBER] = {number, NULL, PRECEDENCE_NONE},
 
     [TOKEN_AND] = {NULL, NULL, PRECEDENCE_NONE},

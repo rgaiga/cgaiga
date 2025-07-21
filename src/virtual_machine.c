@@ -2,9 +2,13 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "compiler.h"
 #include "debug.h"
+// #include "memory.h"
+#include "object.h"
+#include "value.h"
 
 VirtualMachine vm;
 
@@ -15,6 +19,7 @@ InterpretResult interpret(const char* source_code);
 static InterpretResult run();
 static void runtime_error(const char* format, ...);
 static bool is_falsy(Value value);
+static void concatenate();
 
 static void push(Value value);
 static Value pop();
@@ -22,10 +27,13 @@ static Value peek(int offset);
 static void reset_stack();
 
 // Initializes the Virtual Machine.
-void init_virtual_machine() { reset_stack(); }
+void init_virtual_machine() {
+    reset_stack();
+    vm.objects = NULL;
+}
 
 // Frees resources used by the Virtual Machine.
-void free_virtual_machine() {}
+void free_virtual_machine() { free_objects(); }
 
 // Interprets a given source code string.
 InterpretResult interpret(const char* source_code) {
@@ -108,9 +116,20 @@ static InterpretResult run() {
                 BINARY_OP(BOOLEAN_VALUE, <);
                 break;
 
-            case OP_ADD:
-                BINARY_OP(NUMBER_VALUE, +);
+            case OP_ADD: {
+                if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
+                    concatenate();
+                } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+                    double b = AS_NUMBER(pop());
+                    double a = AS_NUMBER(pop());
+                    push(NUMBER_VALUE(a + b));
+                } else {
+                    runtime_error("Operands must be two numbers or two strings.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
                 break;
+            }
+
             case OP_SUBTRACT:
                 BINARY_OP(NUMBER_VALUE, -);
                 break;
@@ -161,6 +180,21 @@ static void runtime_error(const char* format, ...) {
 // Checks if the specified value is evaluated as falsy.
 static bool is_falsy(Value value) {
     return IS_NIL(value) || (IS_BOOLEAN(value) && !AS_BOOLEAN(value));
+}
+
+static void concatenate() {
+    ObjectString* string_b = AS_STRING(pop());
+    ObjectString* string_a = AS_STRING(pop());
+
+    int length = string_a->length + string_b->length;
+    char* characters = ALLOCATE(char, length + 1);
+
+    memcpy(characters, string_a->characters, string_a->length);
+    memcpy(characters + string_a->length, string_b->characters, string_b->length);
+    characters[length] = '\0';
+
+    ObjectString* result = take_string(characters, length);
+    push(OBJECT_VALUE(result));
 }
 
 // Pushes a value onto the stack.

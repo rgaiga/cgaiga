@@ -11,6 +11,7 @@ typedef struct {
     uint8_t *instruction_pointer;
     Value stack[MAX_STACK_SIZE];
     Value *stack_pointer;  // Points to the top element + 1
+    Object *objects;
 } VirtualMachine;
 
 typedef enum { INTERPRET_OK, INTERPRET_COMPILE_ERROR, INTERPRET_RUNTIME_ERROR } InterpretResult;
@@ -18,5 +19,7 @@ typedef enum { INTERPRET_OK, INTERPRET_COMPILE_ERROR, INTERPRET_RUNTIME_ERROR } 
 void init_virtual_machine();
 void free_virtual_machine();
 InterpretResult interpret(const char *source_code);
+
+extern VirtualMachine vm;
 
 #endif
