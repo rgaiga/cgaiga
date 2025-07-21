@@ -17,9 +17,6 @@ typedef enum { INTERPRET_OK, INTERPRET_COMPILE_ERROR, INTERPRET_RUNTIME_ERROR } 
 
 void init_virtual_machine();
 void free_virtual_machine();
-
 InterpretResult interpret(const char *source_code);
-void push(Value value);
-Value pop();
 
 #endif
