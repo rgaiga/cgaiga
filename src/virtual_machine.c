@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "chunk.h"
 #include "compiler.h"
 #include "debug.h"
 // #include "memory.h"
@@ -30,13 +31,18 @@ static void reset_stack();
 // Initializes the Virtual Machine.
 void init_virtual_machine() {
     reset_stack();
+
+    init_hash_table(&vm.globals);
     init_hash_table(&vm.strings);
+
     vm.objects = NULL;
 }
 
 // Frees resources used by the Virtual Machine.
 void free_virtual_machine() {
+    free_hash_table(&vm.globals);
     free_hash_table(&vm.strings);
+
     free_objects();
 }
 
@@ -63,6 +69,7 @@ InterpretResult interpret(const char* source_code) {
 static InterpretResult run() {
 #define READ_INSTRUCTION() (*vm.instruction_pointer++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_INSTRUCTION()])
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 #define BINARY_OP(value_type, op)                         \
     do {                                                  \
         if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -154,9 +161,47 @@ static InterpretResult run() {
                 break;
             }
 
-            case OP_RETURN: {
+            case OP_POP:
+                pop();
+                break;
+
+            case OP_DEFINE_GLOBAL: {
+                ObjectString* name = READ_STRING();
+
+                hash_table_set(&vm.globals, name, peek(0));
+                pop();
+                break;
+            }
+            case OP_SET_GLOBAL: {
+                ObjectString* name = READ_STRING();
+
+                if (hash_table_set(&vm.globals, name, peek(0))) {
+                    hash_table_delete(&vm.globals, name);
+                    runtime_error("Undefined variable '%s'.", name->characters);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
+            case OP_GET_GLOBAL: {
+                ObjectString* name = READ_STRING();
+                Value value;
+
+                if (!hash_table_get(&vm.globals, name, &value)) {
+                    runtime_error("Undefined variable '%s'.", name->characters);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                push(value);
+                break;
+            }
+
+            case OP_PRINT: {
                 print_value(pop());
                 printf("\n");
+                break;
+            }
+            case OP_RETURN: {
+                // Exit interpreter.
                 return INTERPRET_OK;
             }
         }
@@ -164,6 +209,7 @@ static InterpretResult run() {
 
 #undef READ_INSTRUCTION
 #undef READ_CONSTANT
+#undef READ_STRING
 #undef BINARY_OP
 }
 
